@@ -8,6 +8,7 @@ const REFRESH_INTERVAL = 2 * 60 * 1000 // 2 minutes
 export function useEvents() {
   const [events, setEvents] = useState<FoodEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -15,9 +16,12 @@ export function useEvents() {
       if (res.ok) {
         const data = await res.json()
         setEvents(data)
+        setError(null)
+      } else {
+        setError('Failed to load events')
       }
     } catch {
-      // silently retry on next interval
+      setError('Unable to connect. Retrying...')
     } finally {
       setLoading(false)
     }
@@ -29,5 +33,5 @@ export function useEvents() {
     return () => clearInterval(interval)
   }, [refresh])
 
-  return { events, loading, refresh }
+  return { events, loading, error, refresh }
 }

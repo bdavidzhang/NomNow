@@ -9,7 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { MapPin, Clock, Users, CalendarDays } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { MapPin, Clock, Users, CalendarDays, Trash2 } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 
 const STATUS_LABELS = {
@@ -22,9 +23,11 @@ const STATUS_LABELS = {
 interface EventDetailModalProps {
   event: FoodEvent | null
   onClose: () => void
+  isOwner?: boolean
+  onDelete?: () => void
 }
 
-export function EventDetailModal({ event, onClose }: EventDetailModalProps) {
+export function EventDetailModal({ event, onClose, isOwner, onDelete }: EventDetailModalProps) {
   if (!event) return null
 
   const status = getEventStatus(event.start_time, event.end_time)
@@ -87,6 +90,15 @@ export function EventDetailModal({ event, onClose }: EventDetailModalProps) {
             <p className="text-xs text-muted-foreground border-t pt-3">
               Posted by {event.poster.name}
             </p>
+          )}
+
+          {isOwner && onDelete && (
+            <div className="border-t pt-3">
+              <Button variant="destructive" size="sm" className="gap-1.5" onClick={onDelete}>
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete Event
+              </Button>
+            </div>
           )}
         </div>
       </DialogContent>

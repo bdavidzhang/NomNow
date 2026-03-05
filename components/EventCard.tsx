@@ -4,7 +4,7 @@ import { FoodEvent } from '@/lib/types'
 import { getEventStatus } from '@/lib/pinColor'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, Clock, Users } from 'lucide-react'
+import { MapPin, Clock, Users, Trash2 } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
 const STATUS_STYLES = {
@@ -24,9 +24,11 @@ const STATUS_LABELS = {
 interface EventCardProps {
   event: FoodEvent
   onClick?: () => void
+  isOwner?: boolean
+  onDelete?: () => void
 }
 
-export function EventCard({ event, onClick }: EventCardProps) {
+export function EventCard({ event, onClick, isOwner, onDelete }: EventCardProps) {
   const status = getEventStatus(event.start_time, event.end_time)
   const startDate = new Date(event.start_time)
 
@@ -71,6 +73,17 @@ export function EventCard({ event, onClick }: EventCardProps) {
         )}
         {event.poster?.name && (
           <p className="pt-1 text-xs">Posted by {event.poster.name}</p>
+        )}
+        {isOwner && onDelete && (
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete() }}
+              className="flex items-center gap-1 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 className="h-3 w-3" />
+              Delete
+            </button>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -34,6 +34,33 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const body = await req.json()
+
+  // Sanitize updatable text fields
+  if (body.title !== undefined) {
+    body.title = body.title.trim()
+    if (body.title.length === 0 || body.title.length > 150) {
+      return NextResponse.json({ error: 'Title must be 1-150 characters' }, { status: 400 })
+    }
+  }
+  if (body.description !== undefined) {
+    body.description = body.description.trim() || null
+    if (body.description && body.description.length > 1000) {
+      return NextResponse.json({ error: 'Description must be under 1000 characters' }, { status: 400 })
+    }
+  }
+  if (body.location_name !== undefined) {
+    body.location_name = body.location_name.trim()
+    if (body.location_name.length === 0 || body.location_name.length > 200) {
+      return NextResponse.json({ error: 'Location must be 1-200 characters' }, { status: 400 })
+    }
+  }
+
+  // Prevent updating protected fields
+  delete body.id
+  delete body.posted_by
+  delete body.campus
+  delete body.created_at
+
   const { data, error } = await db
     .from('events')
     .update(body)

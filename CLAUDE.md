@@ -33,9 +33,11 @@ nomnow/
 │   ├── (app)/
 │   │   ├── layout.tsx              # App shell with tab nav
 │   │   ├── dashboard/
-│   │   │   └── page.tsx            # Event feed
+│   │   │   ├── page.tsx            # Server wrapper (passes userId)
+│   │   │   └── dashboard-view.tsx  # Client: event feed with filters
 │   │   ├── map/
-│   │   │   └── page.tsx            # Mapbox map view
+│   │   │   ├── page.tsx            # Server wrapper (passes campus config)
+│   │   │   └── map-view.tsx        # Client: Mapbox map view
 │   │   └── post/
 │   │       └── page.tsx            # Create event form
 │   ├── api/
@@ -58,7 +60,7 @@ nomnow/
 │   ├── supabase.ts                 # Supabase client
 │   ├── pinColor.ts                 # Time-to-color algorithm
 │   └── types.ts                   # Shared TypeScript types
-├── middleware.ts                   # Route protection
+├── proxy.ts                       # Route protection (Next.js 16 middleware)
 └── .env.local                      # Secrets (never commit)
 ```
 
@@ -123,11 +125,11 @@ Cutoffs configurable via constants so they can be tuned per campus culture.
 1. User hits `/login`
 2. Clicks "Sign in with Google"
 3. NextAuth redirects to Google OAuth
-4. On callback, check `email` ends with allowed domain (e.g. `@berkeley.edu`)
-5. If domain valid → upsert user in Supabase → redirect to `/dashboard`
-6. If domain invalid → redirect back to `/login?error=unauthorized`
+4. On callback, check email domain against campus registry in `lib/campuses.ts`
+5. If domain matches a registered campus → upsert user in Supabase → redirect to `/dashboard`
+6. If domain unrecognized → redirect back to `/login?error=unauthorized`
 
-Domain allow-list is set via `ALLOWED_EMAIL_DOMAINS` env var (comma-separated).
+Allowed domains are defined in `lib/campuses.ts` (no env var needed).
 
 ---
 
@@ -185,7 +187,7 @@ NEXTAUTH_SECRET=
 NEXTAUTH_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-ALLOWED_EMAIL_DOMAINS=illinois.edu   # comma-separated
+# Allowed email domains defined in lib/campuses.ts
 
 # Database
 NEXT_PUBLIC_SUPABASE_URL=
@@ -217,11 +219,25 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 - [x] Mobile-responsive layout (bottom tab nav, safe area insets, viewport meta)
 - [x] Campus-based event scoping (users only see events from their campus)
 
+### Phase 2.5 — Beta Readiness
+- [x] Rate limiting on POST /api/events (max 5 posts per user per hour)
+- [x] Input validation/sanitization (length limits, XSS protection on title/description)
+- [x] Verify own-event enforcement on PATCH/DELETE routes (posted_by === session.user.id)
+- [x] Edit/delete own events from the UI (buttons on own event cards)
+- [x] Empty states for dashboard and map ("No free food right now — be the first to post!")
+- [x] Error/success feedback on post form (inline banner)
+- [x] Auto-hide expired events (24h+ past start_time)
+- [x] Loading/error states on dashboard page
+- [x] Clean up stale ALLOWED_EMAIL_DOMAINS references (env var, CLAUDE.md, .env.example)
+- [x] Fix CLAUDE.md directory structure (proxy.ts not middleware.ts, add map-view.tsx)
+
 ### Phase 3 — RSVP / Headcount (future)
 - [ ] RSVP table + button on event card
 - [ ] Expected vs. actual attendance counter
 - [ ] Pin turns gray when attendance is "full"
 - [ ] Push notifications for nearby events
+- [ ] "Food's gone" reporting — any user can flag an event as depleted
+- [ ] Relative timestamps on event cards ("5 min ago" instead of absolute time)
 
 ---
 

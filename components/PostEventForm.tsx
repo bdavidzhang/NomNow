@@ -28,6 +28,7 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
   const [selectedFood, setSelectedFood] = useState<string[]>([])
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null)
   const [showManualCoords, setShowManualCoords] = useState(false)
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -42,7 +43,7 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
     const locationName = location?.name ?? (data.get('location_name') as string)
 
     if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-      alert('Please select a location on the map or enter coordinates manually.')
+      setFeedback({ type: 'error', message: 'Please select a location on the map or enter coordinates manually.' })
       setLoading(false)
       return
     }
@@ -72,15 +73,16 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
     setLoading(false)
 
     if (res.ok) {
-      setOpen(false)
+      setFeedback({ type: 'success', message: 'Event posted!' })
       setSelectedFood([])
       setLocation(null)
       setShowManualCoords(false)
       form.reset()
       onCreated?.()
+      setTimeout(() => { setOpen(false); setFeedback(null) }, 1200)
     } else {
       const err = await res.json()
-      alert(err.error ?? 'Failed to post event')
+      setFeedback({ type: 'error', message: err.error ?? 'Failed to post event' })
     }
   }
 
@@ -109,6 +111,15 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
         <DialogHeader>
           <DialogTitle>Post a Free Food Event</DialogTitle>
         </DialogHeader>
+        {feedback && (
+          <div className={`rounded-lg px-3 py-2 text-sm font-medium ${
+            feedback.type === 'success'
+              ? 'bg-green-50 text-green-700'
+              : 'bg-red-50 text-red-700'
+          }`}>
+            {feedback.message}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="title">Event title *</Label>

@@ -1,35 +1,16 @@
-'use client'
-
-import { useSession } from 'next-auth/react'
-import { useEvents } from '@/lib/hooks'
-import { EventMap } from '@/components/EventMap'
+import { auth } from '@/lib/auth'
 import { getCampusById } from '@/lib/campuses'
-import { Loader2 } from 'lucide-react'
+import { MapView } from './map-view'
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
-
-const DEFAULT_CENTER: [number, number] = [-88.2272, 40.102]
-const DEFAULT_ZOOM = 15
-
-export default function MapPage() {
-  const { events, loading } = useEvents()
-  const { data: session } = useSession()
-
+export default async function MapPage() {
+  const session = await auth()
   const campus = session?.user?.campus ? getCampusById(session.user.campus) : undefined
-  const center: [number, number] = campus ? [campus.lng, campus.lat] : DEFAULT_CENTER
-  const zoom = campus?.zoom ?? DEFAULT_ZOOM
-
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
 
   return (
-    <div className="h-full">
-      <EventMap events={events} token={MAPBOX_TOKEN} center={center} zoom={zoom} />
-    </div>
+    <MapView
+      centerLng={campus?.lng ?? -88.2272}
+      centerLat={campus?.lat ?? 40.102}
+      zoom={campus?.zoom ?? 15}
+    />
   )
 }

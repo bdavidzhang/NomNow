@@ -12,7 +12,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus } from 'lucide-react'
+import { Plus, ChevronDown } from 'lucide-react'
+import { LocationPicker } from '@/components/LocationPicker'
+
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
 const FOOD_OPTIONS = [
   'Pizza', 'Sandwiches', 'Tacos', 'Sushi', 'Burritos',
@@ -23,6 +26,8 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [selectedFood, setSelectedFood] = useState<string[]>([])
+  const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null)
+  const [showManualCoords, setShowManualCoords] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -31,13 +36,24 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
     const form = e.currentTarget
     const data = new FormData(form)
 
+    // Use location picker values if available, fall back to manual fields
+    const lat = location?.lat ?? parseFloat(data.get('lat') as string)
+    const lng = location?.lng ?? parseFloat(data.get('lng') as string)
+    const locationName = location?.name ?? (data.get('location_name') as string)
+
+    if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+      alert('Please select a location on the map or enter coordinates manually.')
+      setLoading(false)
+      return
+    }
+
     const payload = {
       title: data.get('title') as string,
       description: data.get('description') as string,
       food_type: selectedFood,
-      location_name: data.get('location_name') as string,
-      lat: parseFloat(data.get('lat') as string),
-      lng: parseFloat(data.get('lng') as string),
+      location_name: locationName,
+      lat,
+      lng,
       start_time: new Date(data.get('start_time') as string).toISOString(),
       end_time: data.get('end_time')
         ? new Date(data.get('end_time') as string).toISOString()
@@ -58,6 +74,8 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
     if (res.ok) {
       setOpen(false)
       setSelectedFood([])
+      setLocation(null)
+      setShowManualCoords(false)
       form.reset()
       onCreated?.()
     } else {
@@ -127,43 +145,64 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
             </div>
           </div>
 
+          {/* Location picker with mini map */}
           <div className="space-y-1.5">
-            <Label htmlFor="location_name">Location *</Label>
-            <Input
-              id="location_name"
-              name="location_name"
-              placeholder="Doe Library, Room 180"
-              required
+            <Label>Location *</Label>
+            <LocationPicker
+              token={MAPBOX_TOKEN}
+              onLocationChange={setLocation}
             />
+            {location && (
+              <p className="text-xs text-green-600 font-medium">
+                Pin set at {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+              </p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="lat">Latitude *</Label>
-              <Input
-                id="lat"
-                name="lat"
-                type="number"
-                step="any"
-                placeholder="37.8724"
-                required
-              />
+          {/* Collapsible manual coordinate entry */}
+          <button
+            type="button"
+            onClick={() => setShowManualCoords(!showManualCoords)}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown className={`h-3 w-3 transition-transform ${showManualCoords ? 'rotate-180' : ''}`} />
+            Enter coordinates manually
+          </button>
+
+          {showManualCoords && (
+            <div className="space-y-3 rounded-lg border p-3 bg-secondary/30">
+              <div className="space-y-1.5">
+                <Label htmlFor="location_name">Location name</Label>
+                <Input
+                  id="location_name"
+                  name="location_name"
+                  placeholder="Siebel Center, Room 1404"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="lat">Latitude</Label>
+                  <Input
+                    id="lat"
+                    name="lat"
+                    type="number"
+                    step="any"
+                    placeholder="40.1020"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="lng">Longitude</Label>
+                  <Input
+                    id="lng"
+                    name="lng"
+                    type="number"
+                    step="any"
+                    placeholder="-88.2272"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="lng">Longitude *</Label>
-              <Input
-                id="lng"
-                name="lng"
-                type="number"
-                step="any"
-                placeholder="-122.2595"
-                required
-              />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Tip: right-click a location in Google Maps to copy coordinates.
-          </p>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -193,7 +232,7 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || (!location && !showManualCoords)}>
             {loading ? 'Posting…' : 'Post Event'}
           </Button>
         </form>

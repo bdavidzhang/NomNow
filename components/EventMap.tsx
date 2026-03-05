@@ -34,10 +34,18 @@ export function EventMap({ events, token, center = [-122.2595, 37.8724], zoom = 
     })
 
     mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
-    mapRef.current.addControl(
-      new mapboxgl.GeolocateControl({ trackUserLocation: true }),
-      'top-right'
-    )
+
+    const geolocate = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserHeading: true,
+    })
+    mapRef.current.addControl(geolocate, 'top-right')
+
+    // Once the map loads, trigger geolocation to center on the user
+    mapRef.current.on('load', () => {
+      geolocate.trigger()
+    })
 
     return () => {
       mapRef.current?.remove()

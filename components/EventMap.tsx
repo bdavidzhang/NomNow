@@ -15,7 +15,7 @@ interface EventMapProps {
   zoom?: number
 }
 
-export function EventMap({ events, token, center = [-122.2595, 37.8724], zoom = 15 }: EventMapProps) {
+export function EventMap({ events, token, center = [-88.2272, 40.1020], zoom = 15 }: EventMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -26,29 +26,41 @@ export function EventMap({ events, token, center = [-122.2595, 37.8724], zoom = 
     if (!containerRef.current || mapRef.current) return
 
     mapboxgl.accessToken = token
-    mapRef.current = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
       container: containerRef.current,
       style: 'mapbox://styles/mapbox/light-v11',
       center,
       zoom,
     })
+    mapRef.current = map
 
-    mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
     const geolocate = new mapboxgl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
       showUserHeading: true,
     })
-    mapRef.current.addControl(geolocate, 'top-right')
+    map.addControl(geolocate, 'top-right')
 
-    // Once the map loads, trigger geolocation to center on the user
-    mapRef.current.on('load', () => {
-      geolocate.trigger()
+    // Trigger geolocation after the map is idle and control is ready
+    map.once('idle', () => {
+      // Small delay to ensure the geolocate control is fully mounted
+      setTimeout(() => {
+        geolocate.trigger()
+      }, 500)
+    })
+
+    // Center map on user when position is found
+    geolocate.on('geolocate', (e: GeolocationPosition) => {
+      map.flyTo({
+        center: [e.coords.longitude, e.coords.latitude],
+        zoom: 16,
+      })
     })
 
     return () => {
-      mapRef.current?.remove()
+      map.remove()
       mapRef.current = null
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,11 +77,14 @@ export function EventMap({ events, token, center = [-122.2595, 37.8724], zoom = 
 
     events.forEach((event) => {
       const color = getPinColor(event.start_time)
-      const status = getEventStatus(event.start_time, event.end_time)
 
-      // Create custom pin element
-      const el = document.createElement('div')
-      el.style.cssText = `
+      // Wrapper div — Mapbox positions this. Don't put transforms on it.
+      const wrapper = document.createElement('div')
+      wrapper.style.cssText = 'cursor: pointer;'
+
+      // Inner pin shape — all visual transforms happen here
+      const pin = document.createElement('div')
+      pin.style.cssText = `
         width: 28px;
         height: 28px;
         border-radius: 50% 50% 50% 0;
@@ -77,23 +92,24 @@ export function EventMap({ events, token, center = [-122.2595, 37.8724], zoom = 
         background: ${color};
         border: 2px solid white;
         box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        cursor: pointer;
         transition: transform 0.15s;
       `
-      el.title = event.title
+      wrapper.appendChild(pin)
+      wrapper.title = event.title
 
-      el.addEventListener('mouseenter', () => {
-        el.style.transform = 'rotate(-45deg) scale(1.2)'
+      wrapper.addEventListener('mouseenter', () => {
+        pin.style.transform = 'rotate(-45deg) scale(1.2)'
       })
-      el.addEventListener('mouseleave', () => {
-        el.style.transform = 'rotate(-45deg)'
+      wrapper.addEventListener('mouseleave', () => {
+        pin.style.transform = 'rotate(-45deg)'
       })
 
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+      const marker = new mapboxgl.Marker({ element: wrapper, anchor: 'bottom' })
         .setLngLat([event.lng, event.lat])
         .addTo(map)
 
-      marker.getElement().addEventListener('click', () => {
+      wrapper.addEventListener('click', (e) => {
+        e.stopPropagation()
         setSelectedEvent(event)
         map.flyTo({ center: [event.lng, event.lat], zoom: Math.max(map.getZoom(), 16) })
       })

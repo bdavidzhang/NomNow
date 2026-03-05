@@ -18,6 +18,7 @@ export interface FoodEvent {
   start_time: string
   end_time: string | null
   expected_people: number | null
+  campus: string | null
   posted_by: string
   created_at: string
   poster?: Pick<User, 'name' | 'avatar_url'>

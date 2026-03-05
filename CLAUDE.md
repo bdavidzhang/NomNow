@@ -54,6 +54,7 @@ nomnow/
 │   └── TabNav.tsx                  # Dashboard / Map tab switcher
 ├── lib/
 │   ├── auth.ts                     # NextAuth config
+│   ├── campuses.ts                 # Campus config registry (domain→campus mapping)
 │   ├── supabase.ts                 # Supabase client
 │   ├── pinColor.ts                 # Time-to-color algorithm
 │   └── types.ts                   # Shared TypeScript types
@@ -87,6 +88,7 @@ lng               float8 not null
 start_time        timestamptz not null
 end_time          timestamptz         -- nullable: open-ended events
 expected_people   int
+campus            text                -- derived from poster's email domain
 posted_by         uuid references users(id)
 created_at        timestamptz default now()
 ```
@@ -126,6 +128,35 @@ Cutoffs configurable via constants so they can be tuned per campus culture.
 6. If domain invalid → redirect back to `/login?error=unauthorized`
 
 Domain allow-list is set via `ALLOWED_EMAIL_DOMAINS` env var (comma-separated).
+
+---
+
+## Campus Scoping
+
+Users only see events from their own campus. Campus is derived automatically from the user's email domain at login — no manual selection needed.
+
+**How it works:**
+1. `lib/campuses.ts` maps email domains → campus config (`{ id, name, center, zoom }`)
+2. On sign-in, `lib/auth.ts` calls `getCampusFromEmail(email)` and sets `users.school` to the campus id (e.g. `uiuc`)
+3. The session callback attaches `school` as `session.user.campus`
+4. `GET /api/events` filters by `campus = session.user.campus` when the user is logged in
+5. `POST /api/events` auto-sets `campus` from the session
+6. The map page reads the campus config to set center coordinates and zoom level
+
+**Adding a new campus:** Add an entry to the `campusByDomain` map in `lib/campuses.ts`:
+```ts
+'berkeley.edu': {
+  id: 'ucb',
+  name: 'UC Berkeley',
+  center: [-122.2585, 37.8719],
+  zoom: 15,
+},
+```
+
+**Edge cases:**
+- Unrecognized email domain → `school = null`, user sees all events (safe fallback for dev)
+- Existing users get `school` populated on next login via upsert
+- Existing events backfilled via migration SQL; orphans with `campus = NULL` are visible to all
 
 ---
 
@@ -184,6 +215,7 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 - [x] Filter by food type or time on dashboard
 - [x] Auto-refresh every 2 min (client-side polling via useEvents hook)
 - [x] Mobile-responsive layout (bottom tab nav, safe area insets, viewport meta)
+- [x] Campus-based event scoping (users only see events from their campus)
 
 ### Phase 3 — RSVP / Headcount (future)
 - [ ] RSVP table + button on event card
@@ -200,6 +232,7 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 - **Supabase over Firebase**: SQL is easier for time-range queries on events
 - **Mapbox over Google Maps**: cleaner React integration, no key billing surprises at low traffic
 - **App Router over Pages Router**: better layout nesting for the two-tab structure
+- **Campus scoping via email domain**: campus is derived automatically from the user's email domain at login (e.g. `@illinois.edu` → `uiuc`). No manual campus selection needed. Config lives in `lib/campuses.ts`
 
 ---
 

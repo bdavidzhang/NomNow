@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase'
 import { CreateEventInput } from '@/lib/types'
 
 export async function GET(req: NextRequest) {
+  const session = await auth()
   const db = createServiceClient()
   const { searchParams } = req.nextUrl
 
@@ -11,6 +12,11 @@ export async function GET(req: NextRequest) {
     .from('events')
     .select(`*, poster:users(name, avatar_url)`)
     .order('start_time', { ascending: true })
+
+  // Scope to user's campus (if logged in and has one)
+  if (session?.user?.campus) {
+    query = query.eq('campus', session.user.campus)
+  }
 
   // Optional time filters
   const after = searchParams.get('after')
@@ -60,6 +66,7 @@ export async function POST(req: NextRequest) {
       end_time: body.end_time ?? null,
       expected_people: body.expected_people ?? null,
       posted_by: session.user.id,
+      campus: session.user.campus ?? null,
     })
     .select()
     .single()

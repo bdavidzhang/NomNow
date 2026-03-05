@@ -43,3 +43,15 @@ create policy "Events are publicly readable" on public.events
 
 -- Events: only the poster can update/delete (enforced via API, service role bypasses)
 -- We manage insert/update/delete through the service role in API routes.
+
+-- Campus scoping: add campus column to events
+alter table public.events add column if not exists campus text;
+create index if not exists events_campus_idx on public.events (campus);
+
+-- Backfill existing events from poster's school
+update public.events e
+  set campus = u.school
+  from public.users u
+  where e.posted_by = u.id
+    and e.campus is null
+    and u.school is not null;

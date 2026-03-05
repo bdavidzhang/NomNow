@@ -1,58 +1,126 @@
-import { createServiceClient } from '@/lib/supabase'
+'use client'
+
+import { useState, useMemo } from 'react'
 import { FoodEvent } from '@/lib/types'
+import { useEvents } from '@/lib/hooks'
+import { getEventStatus } from '@/lib/pinColor'
 import { EventCard } from '@/components/EventCard'
+import { EventDetailModal } from '@/components/EventDetailModal'
 import { PostEventForm } from '@/components/PostEventForm'
+import { Loader2 } from 'lucide-react'
 
-export const dynamic = 'force-dynamic'
+const FOOD_FILTERS = ['Pizza', 'Sandwiches', 'Tacos', 'Sushi', 'Burritos', 'Salad', 'Desserts', 'Drinks', 'Snacks', 'BBQ', 'Other']
+const TIME_FILTERS = ['all', 'active', 'upcoming', 'past'] as const
+type TimeFilter = typeof TIME_FILTERS[number]
 
-async function getEvents(): Promise<FoodEvent[]> {
-  const db = createServiceClient()
-  const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-
-  const { data, error } = await db
-    .from('events')
-    .select(`*, poster:users(name, avatar_url)`)
-    .gte('start_time', threeHoursAgo)
-    .order('start_time', { ascending: true })
-    .limit(50)
-
-  if (error) return []
-  return data as FoodEvent[]
+const TIME_LABELS: Record<TimeFilter, string> = {
+  all: 'All',
+  active: 'Now',
+  upcoming: 'Upcoming',
+  past: 'Ended',
 }
 
-export default async function DashboardPage() {
-  const events = await getEvents()
+export default function DashboardPage() {
+  const { events, loading, refresh } = useEvents()
+  const [selectedFoods, setSelectedFoods] = useState<string[]>([])
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
+  const [selectedEvent, setSelectedEvent] = useState<FoodEvent | null>(null)
 
-  const active = events.filter((e) => {
-    const start = new Date(e.start_time).getTime()
-    const end = e.end_time ? new Date(e.end_time).getTime() : start + 60 * 60 * 1000
-    return Date.now() >= start && Date.now() <= end
+  const filtered = useMemo(() => {
+    return events.filter((e) => {
+      // Food filter
+      if (selectedFoods.length > 0 && !e.food_type.some((f) => selectedFoods.includes(f))) {
+        return false
+      }
+      // Time filter
+      if (timeFilter !== 'all') {
+        const status = getEventStatus(e.start_time, e.end_time)
+        if (timeFilter === 'active' && status !== 'active') return false
+        if (timeFilter === 'upcoming' && status !== 'upcoming' && status !== 'soon') return false
+        if (timeFilter === 'past' && status !== 'past') return false
+      }
+      return true
+    })
+  }, [events, selectedFoods, timeFilter])
+
+  const active = filtered.filter((e) => {
+    const s = getEventStatus(e.start_time, e.end_time)
+    return s === 'active'
   })
-  const upcoming = events.filter((e) => new Date(e.start_time).getTime() > Date.now())
-  const past = events.filter((e) => {
-    const end = e.end_time
-      ? new Date(e.end_time).getTime()
-      : new Date(e.start_time).getTime() + 60 * 60 * 1000
-    return Date.now() > end
+  const upcoming = filtered.filter((e) => {
+    const s = getEventStatus(e.start_time, e.end_time)
+    return s === 'upcoming' || s === 'soon'
   })
+  const past = filtered.filter((e) => {
+    const s = getEventStatus(e.start_time, e.end_time)
+    return s === 'past'
+  })
+
+  function toggleFood(type: string) {
+    setSelectedFoods((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Free Food Today</h2>
           <p className="text-sm text-muted-foreground">
             {active.length} happening now · {upcoming.length} upcoming
           </p>
         </div>
-        <PostEventForm />
+        <PostEventForm onCreated={refresh} />
       </div>
 
-      {events.length === 0 && (
+      {/* Time filter */}
+      <div className="mb-3 flex gap-2">
+        {TIME_FILTERS.map((tf) => (
+          <button
+            key={tf}
+            onClick={() => setTimeFilter(tf)}
+            className={`rounded-full px-3 py-1 text-sm transition-colors ${
+              timeFilter === tf
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
+          >
+            {TIME_LABELS[tf]}
+          </button>
+        ))}
+      </div>
+
+      {/* Food type filter */}
+      <div className="mb-6 flex flex-wrap gap-1.5">
+        {FOOD_FILTERS.map((type) => (
+          <button
+            key={type}
+            onClick={() => toggleFood(type)}
+            className={`rounded-full px-2.5 py-0.5 text-xs transition-colors ${
+              selectedFoods.includes(type)
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'
+            }`}
+          >
+            {type}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
         <div className="rounded-xl border-2 border-dashed p-12 text-center text-muted-foreground">
           <p className="text-4xl">🍽️</p>
-          <p className="mt-2 font-medium">No food events right now</p>
-          <p className="text-sm">Be the first to post one!</p>
+          <p className="mt-2 font-medium">No food events match your filters</p>
+          <p className="text-sm">Try changing your filters or post one!</p>
         </div>
       )}
 
@@ -63,7 +131,7 @@ export default async function DashboardPage() {
           </h3>
           <div className="space-y-3">
             {active.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} onClick={() => setSelectedEvent(event)} />
             ))}
           </div>
         </section>
@@ -76,7 +144,7 @@ export default async function DashboardPage() {
           </h3>
           <div className="space-y-3">
             {upcoming.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} onClick={() => setSelectedEvent(event)} />
             ))}
           </div>
         </section>
@@ -89,11 +157,13 @@ export default async function DashboardPage() {
           </h3>
           <div className="space-y-3">
             {past.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} onClick={() => setSelectedEvent(event)} />
             ))}
           </div>
         </section>
       )}
+
+      <EventDetailModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </div>
   )
 }

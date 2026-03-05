@@ -1,31 +1,25 @@
-import { createServiceClient } from '@/lib/supabase'
-import { FoodEvent } from '@/lib/types'
+'use client'
+
+import { useEvents } from '@/lib/hooks'
 import { EventMap } from '@/components/EventMap'
+import { Loader2 } from 'lucide-react'
 
-export const dynamic = 'force-dynamic'
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-async function getEvents(): Promise<FoodEvent[]> {
-  const db = createServiceClient()
-  const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-  const twentyFourHoursLater = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+export default function MapPage() {
+  const { events, loading } = useEvents()
 
-  const { data } = await db
-    .from('events')
-    .select(`*, poster:users(name, avatar_url)`)
-    .gte('start_time', threeHoursAgo)
-    .lte('start_time', twentyFourHoursLater)
-    .order('start_time', { ascending: true })
-
-  return (data ?? []) as FoodEvent[]
-}
-
-export default async function MapPage() {
-  const events = await getEvents()
-  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
 
   return (
     <div className="h-full">
-      <EventMap events={events} token={token} />
+      <EventMap events={events} token={MAPBOX_TOKEN} center={[-88.2272, 40.1020]} zoom={15} />
     </div>
   )
 }

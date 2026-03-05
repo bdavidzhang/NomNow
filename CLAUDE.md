@@ -154,12 +154,12 @@ NEXTAUTH_SECRET=
 NEXTAUTH_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-ALLOWED_EMAIL_DOMAINS=berkeley.edu,mit.edu   # comma-separated
+ALLOWED_EMAIL_DOMAINS=illinois.edu   # comma-separated
 
 # Database
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
 
 # Map
 NEXT_PUBLIC_MAPBOX_TOKEN=
@@ -169,22 +169,21 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 
 ## Build Phases
 
-### Phase 1 — MVP (build this first)
-- [ ] Next.js project init with TypeScript + Tailwind + shadcn/ui
-- [ ] Supabase project: create tables, enable Row Level Security
-- [ ] NextAuth with Google OAuth + domain restriction
-- [ ] `POST /api/events` + `GET /api/events`
-- [ ] Dashboard tab: list events as cards (title, location, time, food)
-- [ ] Map tab: Mapbox map + pins with color algorithm
-- [ ] Post event form (title, description, food type, location picker, time)
-- [ ] Deploy to Vercel
+### Phase 1 — MVP
+- [x] Next.js project init with TypeScript + Tailwind + shadcn/ui
+- [x] Supabase project: create tables, enable Row Level Security
+- [x] NextAuth with Google OAuth + domain restriction
+- [x] `POST /api/events` + `GET /api/events`
+- [x] Dashboard tab: list events as cards (title, location, time, food)
+- [x] Map tab: Mapbox map + pins with color algorithm
+- [x] Post event form (title, description, food type, location picker, time)
+- [x] Deploy to Vercel
 
 ### Phase 2 — Polish
-- [ ] Real-time pin updates (Supabase Realtime → refresh map)
-- [ ] Event detail modal/page
-- [ ] Filter by food type or time on dashboard
-- [ ] Pull-to-refresh / auto-refresh every 2 min
-- [ ] Mobile-responsive layout
+- [x] Event detail modal/page
+- [x] Filter by food type or time on dashboard
+- [x] Auto-refresh every 2 min (client-side polling via useEvents hook)
+- [x] Mobile-responsive layout (bottom tab nav, safe area insets, viewport meta)
 
 ### Phase 3 — RSVP / Headcount (future)
 - [ ] RSVP table + button on event card

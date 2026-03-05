@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,11 +19,10 @@ const FOOD_OPTIONS = [
   'Salad', 'Desserts', 'Drinks', 'Snacks', 'BBQ', 'Other',
 ]
 
-export function PostEventForm() {
+export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [selectedFood, setSelectedFood] = useState<string[]>([])
-  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -61,7 +59,7 @@ export function PostEventForm() {
       setOpen(false)
       setSelectedFood([])
       form.reset()
-      router.refresh()
+      onCreated?.()
     } else {
       const err = await res.json()
       alert(err.error ?? 'Failed to post event')

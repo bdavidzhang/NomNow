@@ -33,8 +33,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* Tab navigation */}
       <TabNav />
 
-      {/* Page content */}
-      <main className="flex-1 overflow-auto">{children}</main>
+      {/* Page content — pb for bottom nav on mobile */}
+      <main className="flex-1 overflow-auto pb-16 sm:pb-0">{children}</main>
     </div>
   )
 }

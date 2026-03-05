@@ -14,7 +14,7 @@ export function TabNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex border-b">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t bg-background pb-[env(safe-area-inset-bottom)] sm:static sm:border-b sm:border-t-0 sm:pb-0">
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = pathname.startsWith(href)
         return (
@@ -22,13 +22,13 @@ export function TabNav() {
             key={href}
             href={href}
             className={cn(
-              'flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors',
+              'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium transition-colors sm:flex-row sm:gap-2 sm:py-3 sm:text-sm',
               active
-                ? 'border-b-2 border-primary text-primary'
+                ? 'text-primary sm:border-b-2 sm:border-primary'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-5 w-5 sm:h-4 sm:w-4" />
             {label}
           </Link>
         )

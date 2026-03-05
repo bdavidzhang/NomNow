@@ -3,15 +3,8 @@ import Google from 'next-auth/providers/google'
 import { createServiceClient } from './supabase'
 import { getCampusFromEmail } from './campuses'
 
-const allowedDomains = (process.env.ALLOWED_EMAIL_DOMAINS ?? '')
-  .split(',')
-  .map((d) => d.trim().toLowerCase())
-  .filter(Boolean)
-
 function isAllowedEmail(email: string): boolean {
-  if (allowedDomains.length === 0) return true // dev: allow all
-  const domain = email.split('@')[1]?.toLowerCase()
-  return allowedDomains.includes(domain)
+  return getCampusFromEmail(email) !== undefined
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({

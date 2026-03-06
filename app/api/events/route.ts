@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
       start_time: body.start_time,
       end_time: body.end_time ?? null,
       expected_people: body.expected_people ?? null,
+      is_anonymous: body.is_anonymous ?? false,
       posted_by: session.user.id,
       campus: session.user.campus ?? null,
     })

@@ -28,6 +28,7 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
   const [selectedFood, setSelectedFood] = useState<string[]>([])
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null)
   const [showManualCoords, setShowManualCoords] = useState(false)
+  const [anonymous, setAnonymous] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -62,6 +63,7 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
       expected_people: data.get('expected_people')
         ? parseInt(data.get('expected_people') as string)
         : undefined,
+      is_anonymous: anonymous,
     }
 
     const res = await fetch('/api/events', {
@@ -77,6 +79,7 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
       setSelectedFood([])
       setLocation(null)
       setShowManualCoords(false)
+      setAnonymous(false)
       form.reset()
       onCreated?.()
       setTimeout(() => { setOpen(false); setFeedback(null) }, 1200)
@@ -242,6 +245,16 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
               placeholder="50"
             />
           </div>
+
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={anonymous}
+              onChange={(e) => setAnonymous(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            <span className="text-sm">Post anonymously</span>
+          </label>
 
           <Button type="submit" className="w-full" disabled={loading || (!location && !showManualCoords)}>
             {loading ? 'Posting…' : 'Post Event'}

@@ -18,6 +18,7 @@ export interface FoodEvent {
   start_time: string
   end_time: string | null
   expected_people: number | null
+  is_anonymous: boolean
   campus: string | null
   posted_by: string
   created_at: string
@@ -34,4 +35,5 @@ export interface CreateEventInput {
   start_time: string
   end_time?: string
   expected_people?: number
+  is_anonymous?: boolean
 }

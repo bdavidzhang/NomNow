@@ -1,5 +1,6 @@
 import { signIn } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
+import { getAllCampuses } from '@/lib/campuses'
 
 export default function LoginPage({
   searchParams,
@@ -13,6 +14,16 @@ export default function LoginPage({
           <h1 className="text-3xl font-bold tracking-tight">🍕 NomNow</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Find free food on campus — right now.
+          </p>
+        </div>
+
+        <div className="mb-5 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-center">
+          <p className="text-sm font-medium text-amber-800">School email required</p>
+          <p className="mt-1 text-xs text-amber-700">
+            Only students with a verified school email can use NomNow.
+            Currently supported: {getAllCampuses().map((c) => (
+              <span key={c.id} className="font-semibold">@{c.emailDomain}</span>
+            ))}
           </p>
         </div>
 
@@ -31,7 +42,7 @@ export default function LoginPage({
         </form>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          Use your school Google account to access NomNow.
+          Personal Gmail accounts are not accepted.
         </p>
       </div>
     </div>
@@ -47,7 +58,8 @@ async function UnauthorizedError({
   if (error !== 'unauthorized') return null
   return (
     <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-      That email isn&apos;t from an allowed school domain. Use your school Google account.
+      That email isn&apos;t from a supported school. Please sign in with a school email
+      ({getAllCampuses().map((c) => `@${c.emailDomain}`).join(', ')}).
     </div>
   )
 }

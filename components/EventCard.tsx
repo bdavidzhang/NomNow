@@ -71,9 +71,11 @@ export function EventCard({ event, onClick, isOwner, onDelete }: EventCardProps)
             <span>~{event.expected_people} people expected</span>
           </div>
         )}
-        {event.poster?.name && (
+        {event.is_anonymous ? (
+          <p className="pt-1 text-xs text-muted-foreground">Posted anonymously</p>
+        ) : event.poster?.name ? (
           <p className="pt-1 text-xs">Posted by {event.poster.name}</p>
-        )}
+        ) : null}
         {isOwner && onDelete && (
           <div className="flex justify-end pt-2">
             <button

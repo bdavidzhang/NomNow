@@ -86,11 +86,15 @@ export function EventDetailModal({ event, onClose, isOwner, onDelete }: EventDet
             )}
           </div>
 
-          {event.poster?.name && (
+          {event.is_anonymous ? (
+            <p className="text-xs text-muted-foreground border-t pt-3">
+              Posted anonymously
+            </p>
+          ) : event.poster?.name ? (
             <p className="text-xs text-muted-foreground border-t pt-3">
               Posted by {event.poster.name}
             </p>
-          )}
+          ) : null}
 
           {isOwner && onDelete && (
             <div className="border-t pt-3">

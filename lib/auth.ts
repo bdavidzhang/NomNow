@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
 import { createServiceClient } from './supabase'
-import { getCampusFromEmail } from './campuses'
+import { getCampusFromEmail, getAllCampuses } from './campuses'
 
 function isAllowedEmail(email: string): boolean {
   return getCampusFromEmail(email) !== undefined
@@ -15,6 +15,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         params: {
           prompt: 'select_account',
+          // When only one campus, hint Google to show only that domain's accounts
+          ...(getAllCampuses().length === 1 ? { hd: getAllCampuses()[0].emailDomain } : {}),
         },
       },
     }),

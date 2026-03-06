@@ -25,12 +25,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const db = createServiceClient()
   const { data: existing } = await db
     .from('events')
-    .select('posted_by')
+    .select('posted_by, series_id')
     .eq('id', id)
     .single()
 
   if (!existing || existing.posted_by !== session.user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  if (existing.series_id) {
+    return NextResponse.json(
+      { error: 'This event is part of a recurring series. Edit or delete the series instead via /api/series.' },
+      { status: 400 },
+    )
   }
 
   const body = await req.json()
@@ -82,12 +89,19 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const db = createServiceClient()
   const { data: existing } = await db
     .from('events')
-    .select('posted_by')
+    .select('posted_by, series_id')
     .eq('id', id)
     .single()
 
   if (!existing || existing.posted_by !== session.user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  if (existing.series_id) {
+    return NextResponse.json(
+      { error: 'This event is part of a recurring series. Delete the series instead via /api/series.' },
+      { status: 400 },
+    )
   }
 
   const { error } = await db.from('events').delete().eq('id', id)

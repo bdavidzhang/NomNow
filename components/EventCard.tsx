@@ -4,7 +4,7 @@ import { FoodEvent } from '@/lib/types'
 import { getEventStatus } from '@/lib/pinColor'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, Clock, Users, Trash2 } from 'lucide-react'
+import { MapPin, Clock, Users, Trash2, Repeat } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
 const STATUS_STYLES = {
@@ -42,9 +42,14 @@ export function EventCard({ event, onClick, isOwner, onDelete }: EventCardProps)
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold leading-tight">{event.title}</h3>
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status]}`}>
-            {STATUS_LABELS[status]}
-          </span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {event.series_id && (
+              <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status]}`}>
+              {STATUS_LABELS[status]}
+            </span>
+          </div>
         </div>
         <div className="flex flex-wrap gap-1 pt-1">
           {event.food_type.map((type) => (

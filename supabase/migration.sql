@@ -58,3 +58,36 @@ update public.events e
   where e.posted_by = u.id
     and e.campus is null
     and u.school is not null;
+
+-- Recurring events: series table
+create table if not exists public.event_series (
+  id                  uuid primary key default gen_random_uuid(),
+  title               text not null,
+  description         text,
+  food_type           text[] not null default '{}',
+  location_name       text not null,
+  lat                 float8 not null,
+  lng                 float8 not null,
+  start_time_of_day   time not null,        -- e.g. '12:30'
+  duration_minutes    int,                   -- null = open-ended
+  frequency           text not null,         -- 'weekly' | 'biweekly' | 'monthly'
+  days_of_week        int[] default '{}',    -- 0=Sun..6=Sat (for weekly/biweekly)
+  days_of_month       int[] default '{}',    -- 1-31 (for monthly)
+  anchor_date         date not null,         -- reference date for biweekly parity
+  generated_until     date not null,         -- instances exist up to this date
+  is_active           boolean not null default true,
+  expected_people     int,
+  is_anonymous        boolean not null default false,
+  posted_by           uuid references public.users(id) on delete set null,
+  campus              text,
+  created_at          timestamptz default now()
+);
+
+alter table public.event_series enable row level security;
+
+create policy "Event series are publicly readable" on public.event_series
+  for select using (true);
+
+-- Add series_id FK to events
+alter table public.events add column if not exists series_id uuid references public.event_series(id) on delete cascade;
+create index if not exists events_series_id_idx on public.events (series_id);

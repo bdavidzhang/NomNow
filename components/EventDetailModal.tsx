@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { MapPin, Clock, Users, CalendarDays, Trash2 } from 'lucide-react'
+import { MapPin, Clock, Users, CalendarDays, Trash2, Repeat } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 
 const STATUS_LABELS = {
@@ -87,6 +87,13 @@ export function EventDetailModal({ event, onClose, isOwner, onDelete }: EventDet
             )}
           </div>
 
+          {event.series_id && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground border-t pt-3">
+              <Repeat className="h-3.5 w-3.5" />
+              Part of a recurring series
+            </div>
+          )}
+
           {event.is_anonymous ? (
             <p className="text-xs text-muted-foreground border-t pt-3">
               Posted anonymously
@@ -101,7 +108,7 @@ export function EventDetailModal({ event, onClose, isOwner, onDelete }: EventDet
             <div className="border-t pt-3">
               <Button variant="destructive" size="sm" className="gap-1.5" onClick={onDelete}>
                 <Trash2 className="h-3.5 w-3.5" />
-                Delete Event
+                {event.series_id ? 'Delete Series' : 'Delete Event'}
               </Button>
             </div>
           )}

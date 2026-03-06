@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/dialog'
 import { Plus, ChevronDown } from 'lucide-react'
 import { LocationPicker } from '@/components/LocationPicker'
+import { RecurrencePicker } from '@/components/RecurrencePicker'
+import { RecurrenceFrequency } from '@/lib/types'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
@@ -22,6 +24,8 @@ const FOOD_OPTIONS = [
   'Salad', 'Desserts', 'Drinks', 'Snacks', 'BBQ', 'Other',
 ]
 
+const DIETARY_OPTIONS = ['Vegetarian', 'Vegan', 'Halal', 'Kosher']
+
 export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -29,6 +33,10 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null)
   const [showManualCoords, setShowManualCoords] = useState(false)
   const [anonymous, setAnonymous] = useState(false)
+  const [recurring, setRecurring] = useState(false)
+  const [frequency, setFrequency] = useState<RecurrenceFrequency>('weekly')
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([])
+  const [daysOfMonth, setDaysOfMonth] = useState<number[]>([])
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -66,10 +74,20 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
       is_anonymous: anonymous,
     }
 
-    const res = await fetch('/api/events', {
+    const endpoint = recurring ? '/api/series' : '/api/events'
+    const body = recurring
+      ? {
+          ...payload,
+          frequency,
+          days_of_week: frequency !== 'monthly' ? daysOfWeek : undefined,
+          days_of_month: frequency === 'monthly' ? daysOfMonth : undefined,
+        }
+      : payload
+
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     })
 
     setLoading(false)
@@ -80,6 +98,9 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
       setLocation(null)
       setShowManualCoords(false)
       setAnonymous(false)
+      setRecurring(false)
+      setDaysOfWeek([])
+      setDaysOfMonth([])
       form.reset()
       onCreated?.()
       setTimeout(() => { setOpen(false); setFeedback(null) }, 1200)
@@ -151,6 +172,26 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
                     selectedFood.includes(type)
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Dietary options available</Label>
+            <div className="flex flex-wrap gap-2">
+              {DIETARY_OPTIONS.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => toggleFood(type)}
+                  className={`rounded-full px-3 py-1 text-sm transition-colors ${
+                    selectedFood.includes(type)
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                   }`}
                 >
                   {type}
@@ -234,6 +275,17 @@ export function PostEventForm({ onCreated }: { onCreated?: () => void } = {}) {
               <Input id="end_time" name="end_time" type="datetime-local" />
             </div>
           </div>
+
+          <RecurrencePicker
+            enabled={recurring}
+            onEnabledChange={setRecurring}
+            frequency={frequency}
+            onFrequencyChange={setFrequency}
+            daysOfWeek={daysOfWeek}
+            onDaysOfWeekChange={setDaysOfWeek}
+            daysOfMonth={daysOfMonth}
+            onDaysOfMonthChange={setDaysOfMonth}
+          />
 
           <div className="space-y-1.5">
             <Label htmlFor="expected_people">Expected people</Label>

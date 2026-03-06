@@ -231,13 +231,31 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 - [x] Clean up stale ALLOWED_EMAIL_DOMAINS references (env var, CLAUDE.md, .env.example)
 - [x] Fix CLAUDE.md directory structure (proxy.ts not middleware.ts, add map-view.tsx)
 
-### Phase 3 — RSVP / Headcount (future)
+### Phase 3 — Engagement & Social (future)
 - [ ] RSVP table + button on event card
 - [ ] Expected vs. actual attendance counter
 - [ ] Pin turns gray when attendance is "full"
-- [ ] Push notifications for nearby events
 - [ ] "Food's gone" reporting — any user can flag an event as depleted
-- [ ] Relative timestamps on event cards ("5 min ago" instead of absolute time)
+- [ ] Comments/reactions on event cards (e.g. "omw", "food is fire")
+- [ ] Leaderboard / karma for top posters (incentivize posting)
+- [ ] Share event link (deep link to a specific event)
+- [ ] Recurring events (e.g. "every Tuesday at 5pm" for weekly club meetings)
+
+### Phase 4 — Notifications & Discovery (future)
+- [ ] Push notifications for nearby events (via PWA service worker)
+- [ ] Email digest — opt-in daily summary of upcoming free food
+- [ ] Follow specific food types or locations for alerts
+- [ ] Search and filter by building/location name
+- [ ] Event history — personal log of events you posted or attended
+- [ ] Photo uploads on events (proof there's actually food left)
+
+### Phase 5 — Multi-Campus & Growth (future)
+- [ ] Admin dashboard for campus ambassadors (moderate events, manage users)
+- [ ] Analytics — most popular food types, busiest times, top locations
+- [ ] Onboarding flow for adding new campuses (self-serve form)
+- [ ] Cross-campus event visibility toggle (e.g. see nearby campuses)
+- [ ] API rate limiting via Redis (replace in-memory for multi-instance deploys)
+- [ ] Supabase real-time subscriptions (instant event updates, no polling)
 
 ---
 

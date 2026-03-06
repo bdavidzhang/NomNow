@@ -9,7 +9,7 @@ import { EventDetailModal } from '@/components/EventDetailModal'
 import { PostEventForm } from '@/components/PostEventForm'
 import { Loader2 } from 'lucide-react'
 
-const FOOD_FILTERS = ['Pizza', 'Sandwiches', 'Tacos', 'Sushi', 'Burritos', 'Salad', 'Desserts', 'Drinks', 'Snacks', 'BBQ', 'Other']
+const FOOD_FILTERS = ['Pizza', 'Sandwiches', 'Tacos', 'Sushi', 'Burritos', 'Salad', 'Desserts', 'Drinks', 'Snacks', 'BBQ', 'Other', 'Vegetarian', 'Vegan', 'Halal', 'Kosher']
 const TIME_FILTERS = ['all', 'active', 'upcoming', 'past'] as const
 type TimeFilter = typeof TIME_FILTERS[number]
 
@@ -64,12 +64,21 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
     )
   }
 
-  async function handleDelete(eventId: string) {
-    if (!confirm('Delete this event? This cannot be undone.')) return
-    const res = await fetch(`/api/events/${eventId}`, { method: 'DELETE' })
-    if (res.ok) {
-      setSelectedEvent(null)
-      refresh()
+  async function handleDelete(event: FoodEvent) {
+    if (event.series_id) {
+      if (!confirm('Delete this recurring series and all its events? This cannot be undone.')) return
+      const res = await fetch(`/api/series/${event.series_id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setSelectedEvent(null)
+        refresh()
+      }
+    } else {
+      if (!confirm('Delete this event? This cannot be undone.')) return
+      const res = await fetch(`/api/events/${event.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setSelectedEvent(null)
+        refresh()
+      }
     }
   }
 
@@ -157,7 +166,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 key={event.id}
                 event={event}
                 isOwner={currentUserId === event.posted_by}
-                onDelete={() => handleDelete(event.id)}
+                onDelete={() => handleDelete(event)}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -176,7 +185,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 key={event.id}
                 event={event}
                 isOwner={currentUserId === event.posted_by}
-                onDelete={() => handleDelete(event.id)}
+                onDelete={() => handleDelete(event)}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -195,7 +204,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 key={event.id}
                 event={event}
                 isOwner={currentUserId === event.posted_by}
-                onDelete={() => handleDelete(event.id)}
+                onDelete={() => handleDelete(event)}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -214,7 +223,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 key={event.id}
                 event={event}
                 isOwner={currentUserId === event.posted_by}
-                onDelete={() => handleDelete(event.id)}
+                onDelete={() => handleDelete(event)}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -233,7 +242,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 key={event.id}
                 event={event}
                 isOwner={currentUserId === event.posted_by}
-                onDelete={() => handleDelete(event.id)}
+                onDelete={() => handleDelete(event)}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -245,7 +254,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
         isOwner={selectedEvent ? currentUserId === selectedEvent.posted_by : false}
-        onDelete={selectedEvent ? () => handleDelete(selectedEvent.id) : undefined}
+        onDelete={selectedEvent ? () => handleDelete(selectedEvent) : undefined}
       />
     </div>
   )

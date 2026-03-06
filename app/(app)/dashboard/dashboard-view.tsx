@@ -6,6 +6,7 @@ import { useEvents } from '@/lib/hooks'
 import { getEventStatus } from '@/lib/pinColor'
 import { EventCard } from '@/components/EventCard'
 import { EventDetailModal } from '@/components/EventDetailModal'
+import { EditEventForm } from '@/components/EditEventForm'
 import { PostEventForm } from '@/components/PostEventForm'
 import { Loader2 } from 'lucide-react'
 
@@ -33,6 +34,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
   const [selectedFoods, setSelectedFoods] = useState<string[]>([])
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
   const [selectedEvent, setSelectedEvent] = useState<FoodEvent | null>(null)
+  const [editingEvent, setEditingEvent] = useState<FoodEvent | null>(null)
 
   const filtered = useMemo(() => {
     return events.filter((e) => {
@@ -62,6 +64,11 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
     setSelectedFoods((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     )
+  }
+
+  function handleEdit(event: FoodEvent) {
+    setSelectedEvent(null)
+    setEditingEvent(event)
   }
 
   async function handleDelete(event: FoodEvent) {
@@ -167,6 +174,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 event={event}
                 isOwner={currentUserId === event.posted_by}
                 onDelete={() => handleDelete(event)}
+                onEdit={currentUserId === event.posted_by && !event.series_id ? () => handleEdit(event) : undefined}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -186,6 +194,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 event={event}
                 isOwner={currentUserId === event.posted_by}
                 onDelete={() => handleDelete(event)}
+                onEdit={currentUserId === event.posted_by && !event.series_id ? () => handleEdit(event) : undefined}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -205,6 +214,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 event={event}
                 isOwner={currentUserId === event.posted_by}
                 onDelete={() => handleDelete(event)}
+                onEdit={currentUserId === event.posted_by && !event.series_id ? () => handleEdit(event) : undefined}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -224,6 +234,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 event={event}
                 isOwner={currentUserId === event.posted_by}
                 onDelete={() => handleDelete(event)}
+                onEdit={currentUserId === event.posted_by && !event.series_id ? () => handleEdit(event) : undefined}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -243,6 +254,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
                 event={event}
                 isOwner={currentUserId === event.posted_by}
                 onDelete={() => handleDelete(event)}
+                onEdit={currentUserId === event.posted_by && !event.series_id ? () => handleEdit(event) : undefined}
                 onClick={() => setSelectedEvent(event)}
               />
             ))}
@@ -255,7 +267,20 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
         onClose={() => setSelectedEvent(null)}
         isOwner={selectedEvent ? currentUserId === selectedEvent.posted_by : false}
         onDelete={selectedEvent ? () => handleDelete(selectedEvent) : undefined}
+        onEdit={selectedEvent && currentUserId === selectedEvent.posted_by && !selectedEvent.series_id
+          ? () => handleEdit(selectedEvent)
+          : undefined}
       />
+
+      {editingEvent && (
+        <EditEventForm
+          key={editingEvent.id}
+          event={editingEvent}
+          open={!!editingEvent}
+          onOpenChange={(open) => { if (!open) setEditingEvent(null) }}
+          onUpdated={() => { refresh(); setEditingEvent(null) }}
+        />
+      )}
     </div>
   )
 }

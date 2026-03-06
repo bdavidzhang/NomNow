@@ -4,7 +4,7 @@ import { FoodEvent } from '@/lib/types'
 import { getEventStatus } from '@/lib/pinColor'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, Clock, Users, Trash2, Repeat } from 'lucide-react'
+import { MapPin, Clock, Users, Trash2, Pencil, Repeat } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
 const STATUS_STYLES = {
@@ -28,9 +28,10 @@ interface EventCardProps {
   onClick?: () => void
   isOwner?: boolean
   onDelete?: () => void
+  onEdit?: () => void
 }
 
-export function EventCard({ event, onClick, isOwner, onDelete }: EventCardProps) {
+export function EventCard({ event, onClick, isOwner, onDelete, onEdit }: EventCardProps) {
   const status = getEventStatus(event.start_time, event.end_time)
   const startDate = new Date(event.start_time)
 
@@ -83,15 +84,26 @@ export function EventCard({ event, onClick, isOwner, onDelete }: EventCardProps)
         ) : event.poster?.name ? (
           <p className="pt-1 text-xs">Posted by {event.poster.name}</p>
         ) : null}
-        {isOwner && onDelete && (
-          <div className="flex justify-end pt-2">
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete() }}
-              className="flex items-center gap-1 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 transition-colors"
-            >
-              <Trash2 className="h-3 w-3" />
-              Delete
-            </button>
+        {isOwner && (onEdit || onDelete) && (
+          <div className="flex justify-end gap-2 pt-2">
+            {onEdit && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onEdit() }}
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-secondary transition-colors"
+              >
+                <Pencil className="h-3 w-3" />
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete() }}
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete
+              </button>
+            )}
           </div>
         )}
       </CardContent>

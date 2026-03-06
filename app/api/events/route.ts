@@ -29,14 +29,11 @@ export async function GET(req: NextRequest) {
   if (after) query = query.gte('start_time', after)
   if (before) query = query.lte('start_time', before)
 
-  // Default: show events from 3 hours ago onward (hide events older than 24h regardless)
+  // Default: hide events that started more than 24 hours ago (they're long over)
   if (!after) {
-    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-    query = query.gte('start_time', threeHoursAgo)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    query = query.gte('start_time', twentyFourHoursAgo)
   }
-  // Hard cutoff: never show events with start_time older than 24 hours
-  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  query = query.gte('start_time', twentyFourHoursAgo)
 
   const limit = parseInt(searchParams.get('limit') ?? '50')
   const offset = parseInt(searchParams.get('offset') ?? '0')

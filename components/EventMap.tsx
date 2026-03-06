@@ -148,7 +148,7 @@ export function EventMap({ events, token, center = [-88.2272, 40.1020], zoom = 1
 
 function EventPopup({ event, onClose }: { event: FoodEvent; onClose: () => void }) {
   const status = getEventStatus(event.start_time, event.end_time)
-  const statusLabel = { active: 'Happening now', soon: 'Starting soon', upcoming: 'Upcoming', past: 'Ended' }[status]
+  const statusLabel = { active: 'Happening now', soon: 'Starting soon', today: 'Later today', upcoming: 'Upcoming', past: 'Ended' }[status]
 
   return (
     <div className="absolute bottom-8 right-3 w-72 rounded-xl bg-white shadow-lg p-4 space-y-2">

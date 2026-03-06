@@ -20,6 +20,10 @@ const TIME_LABELS: Record<TimeFilter, string> = {
   past: 'Ended',
 }
 
+function isUpcomingStatus(status: string) {
+  return status === 'upcoming' || status === 'soon' || status === 'today'
+}
+
 interface DashboardViewProps {
   currentUserId: string | null
 }
@@ -40,7 +44,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
       if (timeFilter !== 'all') {
         const status = getEventStatus(e.start_time, e.end_time)
         if (timeFilter === 'active' && status !== 'active') return false
-        if (timeFilter === 'upcoming' && status !== 'upcoming' && status !== 'soon') return false
+        if (timeFilter === 'upcoming' && !isUpcomingStatus(status)) return false
         if (timeFilter === 'past' && status !== 'past') return false
       }
       return true
@@ -48,11 +52,11 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
   }, [events, selectedFoods, timeFilter])
 
   const active = filtered.filter((e) => getEventStatus(e.start_time, e.end_time) === 'active')
-  const upcoming = filtered.filter((e) => {
-    const s = getEventStatus(e.start_time, e.end_time)
-    return s === 'upcoming' || s === 'soon'
-  })
+  const soon = filtered.filter((e) => getEventStatus(e.start_time, e.end_time) === 'soon')
+  const today = filtered.filter((e) => getEventStatus(e.start_time, e.end_time) === 'today')
+  const upcoming = filtered.filter((e) => getEventStatus(e.start_time, e.end_time) === 'upcoming')
   const past = filtered.filter((e) => getEventStatus(e.start_time, e.end_time) === 'past')
+  const allUpcoming = [...soon, ...today, ...upcoming]
 
   function toggleFood(type: string) {
     setSelectedFoods((prev) =>
@@ -94,7 +98,7 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
         <div>
           <h2 className="text-lg font-semibold">Free Food Today</h2>
           <p className="text-sm text-muted-foreground">
-            {active.length} happening now · {upcoming.length} upcoming
+            {active.length} happening now · {allUpcoming.length} upcoming
           </p>
         </div>
         <PostEventForm onCreated={refresh} />
@@ -161,9 +165,47 @@ export function DashboardView({ currentUserId }: DashboardViewProps) {
         </section>
       )}
 
-      {upcoming.length > 0 && (
+      {soon.length > 0 && (
+        <section className="mb-6">
+          <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-teal-700">
+            Starting Soon
+          </h3>
+          <div className="space-y-3">
+            {soon.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                isOwner={currentUserId === event.posted_by}
+                onDelete={() => handleDelete(event.id)}
+                onClick={() => setSelectedEvent(event)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {today.length > 0 && (
         <section className="mb-6">
           <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-blue-700">
+            Later Today
+          </h3>
+          <div className="space-y-3">
+            {today.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                isOwner={currentUserId === event.posted_by}
+                onDelete={() => handleDelete(event.id)}
+                onClick={() => setSelectedEvent(event)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {upcoming.length > 0 && (
+        <section className="mb-6">
+          <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-indigo-700">
             Upcoming
           </h3>
           <div className="space-y-3">

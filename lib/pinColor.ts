@@ -64,15 +64,35 @@ export function getPinColor(startTime: string): string {
   return '#16A34A'
 }
 
-/** Returns a Tailwind-friendly label for the event's status */
-export function getEventStatus(startTime: string, endTime?: string | null): 'past' | 'active' | 'soon' | 'upcoming' {
-  const now = Date.now()
-  const start = new Date(startTime).getTime()
-  const end = endTime ? new Date(endTime).getTime() : start + 60 * 60 * 1000
+/**
+ * Returns a status label for the event.
+ * - 'past': end_time (or start_time + 1h if no end) is in the past
+ * - 'active': happening right now (between start and end)
+ * - 'soon': starts within 30 minutes
+ * - 'today': starts later today
+ * - 'upcoming': starts tomorrow or later
+ */
+export type EventStatus = 'past' | 'active' | 'soon' | 'today' | 'upcoming'
+
+export function getEventStatus(startTime: string, endTime?: string | null): EventStatus {
+  const now = new Date()
+  const start = new Date(startTime)
+  const end = endTime ? new Date(endTime) : new Date(start.getTime() + 60 * 60 * 1000)
 
   if (now > end) return 'past'
   if (now >= start) return 'active'
-  const minsUntil = (start - now) / 60_000
+
+  const minsUntil = (start.getTime() - now.getTime()) / 60_000
   if (minsUntil <= 30) return 'soon'
+
+  // Check if it's later today
+  if (
+    start.getFullYear() === now.getFullYear() &&
+    start.getMonth() === now.getMonth() &&
+    start.getDate() === now.getDate()
+  ) {
+    return 'today'
+  }
+
   return 'upcoming'
 }

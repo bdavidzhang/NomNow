@@ -16,6 +16,7 @@ import { format, formatDistanceToNow } from 'date-fns'
 const STATUS_LABELS = {
   active: 'Happening now',
   soon: 'Starting soon',
+  today: 'Later today',
   upcoming: 'Upcoming',
   past: 'Ended',
 }

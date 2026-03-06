@@ -10,13 +10,15 @@ import { formatDistanceToNow, format } from 'date-fns'
 const STATUS_STYLES = {
   active: 'bg-green-100 text-green-800',
   soon: 'bg-teal-100 text-teal-800',
-  upcoming: 'bg-blue-100 text-blue-800',
+  today: 'bg-blue-100 text-blue-800',
+  upcoming: 'bg-indigo-100 text-indigo-800',
   past: 'bg-red-100 text-red-700 opacity-60',
 }
 
 const STATUS_LABELS = {
   active: 'Happening now',
   soon: 'Starting soon',
+  today: 'Later today',
   upcoming: 'Upcoming',
   past: 'Ended',
 }

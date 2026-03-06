@@ -85,8 +85,11 @@ export function EditEventForm({ event, open, onOpenChange, onUpdated }: EditEven
 
     if (res.ok) {
       setFeedback({ type: 'success', message: 'Event updated!' })
-      onUpdated?.()
-      setTimeout(() => { onOpenChange(false); setFeedback(null) }, 1200)
+      setTimeout(() => {
+        onUpdated?.()
+        onOpenChange(false)
+        setFeedback(null)
+      }, 1200)
     } else {
       const err = await res.json()
       setFeedback({ type: 'error', message: err.error ?? 'Failed to update event' })

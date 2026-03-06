@@ -29,8 +29,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq('id', id)
     .single()
 
-  if (!existing || existing.posted_by !== session.user.id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!existing) {
+    return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+  }
+
+  if (existing.posted_by !== session.user.id) {
+    return NextResponse.json({ error: 'You can only edit your own events' }, { status: 403 })
   }
 
   if (existing.series_id) {
@@ -93,8 +97,12 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .eq('id', id)
     .single()
 
-  if (!existing || existing.posted_by !== session.user.id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!existing) {
+    return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+  }
+
+  if (existing.posted_by !== session.user.id) {
+    return NextResponse.json({ error: 'You can only delete your own events' }, { status: 403 })
   }
 
   if (existing.series_id) {

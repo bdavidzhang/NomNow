@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Rate limit: counts as 1 post
-  if (!rateLimit(`post:${session.user.id}`, 5, 60 * 60 * 1000)) {
-    return NextResponse.json({ error: 'Too many posts. Please wait before posting again.' }, { status: 429 })
+  // Rate limit: separate bucket for series (doesn't eat into single-event quota)
+  if (!rateLimit(`series:${session.user.id}`, 3, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many series created. Please wait before creating another.' }, { status: 429 })
   }
 
   const body: CreateSeriesInput = await req.json()

@@ -240,8 +240,10 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 - [ ] Leaderboard / karma for top posters (incentivize posting)
 - [ ] Share event link (deep link to a specific event)
 - [ ] Recurring events (e.g. "every Tuesday at 5pm" for weekly club meetings)
+- [ ] Edit recurring series (PATCH /api/series/:id + UI; updates template and regenerates future instances)
 
 ### Phase 4 — Notifications & Discovery (future)
+- [ ] AI-assisted post form — paste a flyer/email/screenshot, AI extracts title, food type, location, and time to pre-fill the form
 - [ ] Push notifications for nearby events (via PWA service worker)
 - [ ] Email digest — opt-in daily summary of upcoming free food
 - [ ] Follow specific food types or locations for alerts
@@ -256,6 +258,15 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 - [ ] Cross-campus event visibility toggle (e.g. see nearby campuses)
 - [ ] API rate limiting via Redis (replace in-memory for multi-instance deploys)
 - [ ] Supabase real-time subscriptions (instant event updates, no polling)
+
+### Phase 6 — Monetization (future)
+- [ ] Promoted restaurant deals — "Sponsored" event cards in the dashboard feed from local restaurants offering student discounts
+- [ ] Campus dining partnerships — universities pay to promote dining hall specials or meal plan events
+- [ ] Event sponsorship badges — restaurants sponsor free food events with branding on the event card
+- [ ] Catering/vendor referrals — connect event organizers with local food vendors for a referral fee
+- [ ] Premium org tools — charge student orgs or universities for analytics dashboards and bulk posting
+
+**Monetization principle:** Never charge individual students. Revenue comes from restaurants, vendors, and institutional partners. Promoted content must be relevant (food deals/discounts) so it adds value rather than clutter.
 
 ---
 

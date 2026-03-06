@@ -34,12 +34,16 @@ alter table public.users enable row level security;
 alter table public.events enable row level security;
 
 -- Users: anyone can read, only the service role can write
-create policy "Users are publicly readable" on public.users
-  for select using (true);
+do $$ begin
+  create policy "Users are publicly readable" on public.users for select using (true);
+exception when duplicate_object then null;
+end $$;
 
 -- Events: anyone can read
-create policy "Events are publicly readable" on public.events
-  for select using (true);
+do $$ begin
+  create policy "Events are publicly readable" on public.events for select using (true);
+exception when duplicate_object then null;
+end $$;
 
 -- Events: only the poster can update/delete (enforced via API, service role bypasses)
 -- We manage insert/update/delete through the service role in API routes.
@@ -85,8 +89,10 @@ create table if not exists public.event_series (
 
 alter table public.event_series enable row level security;
 
-create policy "Event series are publicly readable" on public.event_series
-  for select using (true);
+do $$ begin
+  create policy "Event series are publicly readable" on public.event_series for select using (true);
+exception when duplicate_object then null;
+end $$;
 
 -- Add series_id FK to events
 alter table public.events add column if not exists series_id uuid references public.event_series(id) on delete cascade;

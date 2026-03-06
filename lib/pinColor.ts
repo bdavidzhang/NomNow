@@ -77,22 +77,28 @@ export type EventStatus = 'past' | 'active' | 'soon' | 'today' | 'upcoming'
 export function getEventStatus(startTime: string, endTime?: string | null): EventStatus {
   const now = new Date()
   const start = new Date(startTime)
-  const end = endTime ? new Date(endTime) : new Date(start.getTime() + 60 * 60 * 1000)
 
-  if (now > end) return 'past'
-  if (now >= start) return 'active'
+  // If the event hasn't started yet, it's never "past"
+  if (now < start) {
+    const minsUntil = (start.getTime() - now.getTime()) / 60_000
+    if (minsUntil <= 30) return 'soon'
 
-  const minsUntil = (start.getTime() - now.getTime()) / 60_000
-  if (minsUntil <= 30) return 'soon'
+    if (
+      start.getFullYear() === now.getFullYear() &&
+      start.getMonth() === now.getMonth() &&
+      start.getDate() === now.getDate()
+    ) {
+      return 'today'
+    }
 
-  // Check if it's later today
-  if (
-    start.getFullYear() === now.getFullYear() &&
-    start.getMonth() === now.getMonth() &&
-    start.getDate() === now.getDate()
-  ) {
-    return 'today'
+    return 'upcoming'
   }
 
-  return 'upcoming'
+  // Event has started — check if it's ended
+  const end = endTime && !isNaN(new Date(endTime).getTime())
+    ? new Date(endTime)
+    : new Date(start.getTime() + 60 * 60 * 1000)
+
+  if (now > end) return 'past'
+  return 'active'
 }
